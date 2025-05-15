@@ -6,17 +6,25 @@ from sklearn.preprocessing import LabelEncoder
 # Charger le modèle
 model = joblib.load("mon_model.pkl")
 
-# Encodeurs manuels
+# Encodeurs
 le_quartier = LabelEncoder()
 le_quartier.fit(["zone 1", "zone 2", "zone 3", "zone 4", "zone 5"])
+
 le_catastrophe = LabelEncoder()
 le_catastrophe.fit(["aucun", "inondation", "seisme"])
+
+# Mois en lettres
+mois_dict = {
+    "janvier": 1, "février": 2, "mars": 3, "avril": 4,
+    "mai": 5, "juin": 6, "juillet": 7, "août": 8,
+    "septembre": 9, "octobre": 10, "novembre": 11, "décembre": 12
+}
 
 # Titre principal
 st.markdown("<h1 style='text-align: center;'>🌪️ Prédiction Catastrophes Climatiques</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Organisation en 2 colonnes pour la saisie
+# Organisation en 2 colonnes
 col1, col2 = st.columns(2)
 
 with col1:
@@ -30,20 +38,20 @@ with col2:
     sismicite = st.number_input("🌍 Sismicité", value=0.5)
     gaz = st.number_input("🧪 Concentration gaz", value=100.0)
     jour = st.number_input("📆 Jour", value=1, min_value=1, max_value=31)
-    mois = st.number_input("🗓️ Mois", value=1, min_value=1, max_value=12)
+    mois_nom = st.selectbox("🗓️ Mois", list(mois_dict.keys()))
+    mois = mois_dict[mois_nom]
     quartier_nom = st.selectbox("🏘️ Quartier", le_quartier.classes_)
 
 quartier_encoded = le_quartier.transform([quartier_nom])[0]
 
-# Créer DataFrame dans le bon ordre
-features = pd.DataFrame([[
-    temperature, humidite, pluie_totale, pluie_intensite_max,
-    vent_moyen, sismicite, gaz, jour, mois, quartier_encoded
-]], columns=[
-    "temperature", "humidite", "pluie_totale", "pluie_intensite_max",
-    "force_moyenne_du_vecteur_de_vent", "sismicite", "concentration_gaz",
-    "jour", "mois", "quartier_encoded"
-])
+# Créer le DataFrame pour la prédiction
+features = pd.DataFrame([[temperature, humidite, pluie_totale, pluie_intensite_max,
+                          vent_moyen, sismicite, gaz, jour, mois, quartier_encoded]],
+                        columns=[
+                            "temperature", "humidite", "pluie_totale", "pluie_intensite_max",
+                            "force_moyenne_du_vecteur_de_vent", "sismicite", "concentration_gaz",
+                            "jour", "mois", "quartier_encoded"
+                        ])
 
 # Bouton de prédiction
 st.markdown("---")
