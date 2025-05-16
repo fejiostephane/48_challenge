@@ -3,28 +3,51 @@ import pandas as pd
 import joblib
 from sklearn.preprocessing import LabelEncoder
 
-# Charger le modèle
+# ========== Chargement modèle et encodeurs ==========
 model = joblib.load("mon_model.pkl")
 
-# Encodeurs
 le_quartier = LabelEncoder()
 le_quartier.fit(["zone 1", "zone 2", "zone 3", "zone 4", "zone 5"])
 
 le_catastrophe = LabelEncoder()
 le_catastrophe.fit(["aucun", "inondation", "seisme"])
 
-# Mois en lettres
 mois_dict = {
     "janvier": 1, "février": 2, "mars": 3, "avril": 4,
     "mai": 5, "juin": 6, "juillet": 7, "août": 8,
     "septembre": 9, "octobre": 10, "novembre": 11, "décembre": 12
 }
 
-# Titre principal
-st.markdown("<h1 style='text-align: center;'>🌪️ Prédiction Catastrophes Climatiques</h1>", unsafe_allow_html=True)
+# ========== Mise en forme CSS ==========
+st.set_page_config(page_title="🌪️ Catastrophes Climatiques", layout="centered")
+
+st.markdown("""
+    <style>
+        .centered-title {
+            text-align: center;
+            font-size: 32px;
+            color: #1f77b4;
+            font-weight: bold;
+        }
+        .stButton button {
+            width: 100%;
+            background-color: #1f77b4;
+            color: white;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+
+# ========== Sidebar ==========
+st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Weather_icon_-_storm.svg/2048px-Weather_icon_-_storm.svg.png", width=100)
+st.sidebar.markdown("### 🌦️ Projet SPE PRO")
+st.sidebar.info("Ce modèle prédit les **catastrophes naturelles** à partir de données climatiques.")
+
+# ========== Titre principal ==========
+st.markdown("<h1 class='centered-title'>🌪️ Prédiction Catastrophes Climatiques</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Organisation en 2 colonnes
+# ========== Formulaire ==========
 col1, col2 = st.columns(2)
 
 with col1:
@@ -44,18 +67,30 @@ with col2:
 
 quartier_encoded = le_quartier.transform([quartier_nom])[0]
 
-# Créer le DataFrame pour la prédiction
-features = pd.DataFrame([[temperature, humidite, pluie_totale, pluie_intensite_max,
-                          vent_moyen, sismicite, gaz, jour, mois, quartier_encoded]],
-                        columns=[
-                            "temperature", "humidite", "pluie_totale", "pluie_intensite_max",
-                            "force_moyenne_du_vecteur_de_vent", "sismicite", "concentration_gaz",
-                            "jour", "mois", "quartier_encoded"
-                        ])
+# ========== Construction des features ==========
+features = pd.DataFrame([[
+    temperature, humidite, pluie_totale, pluie_intensite_max,
+    vent_moyen, sismicite, gaz, jour, mois, quartier_encoded
+]], columns=[
+    "temperature", "humidite", "pluie_totale", "pluie_intensite_max",
+    "force_moyenne_du_vecteur_de_vent", "sismicite", "concentration_gaz",
+    "jour", "mois", "quartier_encoded"
+])
 
-# Bouton de prédiction
+# ========== Prédiction ==========
 st.markdown("---")
 if st.button("🔍 Lancer la prédiction"):
     prediction = model.predict(features)[0]
     label = le_catastrophe.inverse_transform([prediction])[0]
-    st.success(f"🎯 **Catastrophe prédite : {label.upper()}**")
+
+    st.markdown(f"""
+    <div style='
+        background-color:#e3f2fd;
+        padding: 25px;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 24px;
+        color: #0d47a1;'>
+        🎯 <b>Catastrophe prédite :</b><br> {label.upper()}
+    </div>
+    """, unsafe_allow_html=True)
